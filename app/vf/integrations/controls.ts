@@ -1,14 +1,27 @@
 import { mergeConfigs } from '√'
+import { isFilmInLibrary } from '../../integrations/media-availability'
 import { store } from '../../store'
 import { VOROFORCE_MODE } from '../consts'
 import type { VoroforceCell, VoroforceInstance } from '../types'
 import { getCellFilm } from '../utils'
 
+const getSelectableFilm = async (cell?: VoroforceCell) => {
+  if (!cell) return
+
+  const { filmBatches, availabilityIndex, userConfig } = store.getState()
+  const film = await getCellFilm(cell, filmBatches)
+
+  if (userConfig.libraryOnly && film && !isFilmInLibrary(film, availabilityIndex)) {
+    return
+  }
+
+  return film
+}
+
 export const handleControls = () => {
   const {
     setFilm,
     voroforce,
-    filmBatches,
     configUniforms: {
       main: mainUniforms,
       transitioning: transitioningUniforms,
@@ -21,12 +34,12 @@ export const handleControls = () => {
   const { controls } = voroforce
 
   controls.listen('focused', (async ({ cell }: { cell: VoroforceCell }) => {
-    if (cell) setFilm(await getCellFilm(cell, filmBatches))
+    setFilm(await getSelectableFilm(cell))
   }) as unknown as EventListener)
 
   controls.listen('selected', (async ({ cell }: { cell: VoroforceCell }) => {
     if (cell) {
-      setFilm(await getCellFilm(cell, filmBatches))
+      setFilm(await getSelectableFilm(cell))
       // controls.pinPointer()
     } else {
       // controls.unpinPointer()

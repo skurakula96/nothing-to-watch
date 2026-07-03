@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
-import { store } from './store'
+import { store, useShallowState } from './store'
 import { initVoroforce } from './vf'
 
 export function Voroforce() {
   const [error, setError] = useState<Error | null>(null)
+  const { catalogMetaLoaded } = useShallowState((state) => ({
+    catalogMetaLoaded: state.catalogMetaLoaded,
+  }))
 
   useEffect(() => {
+    if (!catalogMetaLoaded) return
+
     const tryInit = () => {
       try {
         initVoroforce()
@@ -14,7 +19,6 @@ export function Voroforce() {
       }
     }
 
-    // attempt initial
     void tryInit()
     const unsub = store.subscribe(
       (s) => s.preset,
@@ -27,7 +31,7 @@ export function Voroforce() {
     return () => {
       unsub()
     }
-  }, [])
+  }, [catalogMetaLoaded])
 
   if (error) {
     throw error

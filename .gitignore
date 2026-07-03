@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+.tmp-*
 _ref
 _ref/*
 public/tmp.webm

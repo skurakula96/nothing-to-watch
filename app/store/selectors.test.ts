@@ -62,6 +62,16 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   setPerformanceMonitor: () => {},
 
   // FilmData Slice defaults
+  catalogMeta: undefined,
+  catalogMetaLoaded: false,
+  setCatalogMeta: () => {},
+  setCatalogMetaLoaded: () => {},
+  setCatalogMetaError: () => {},
+  availabilityIndex: {},
+  availabilityLoaded: false,
+  setAvailabilityIndex: () => {},
+  setAvailabilityLoaded: () => {},
+  setAvailabilityError: () => {},
   setFilm: () => {},
   filmBatches: new Map(),
 

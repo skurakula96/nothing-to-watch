@@ -5,6 +5,7 @@ import config from '../../config'
 import { cn } from '../../utils/tw'
 import { VOROFORCE_PRESET } from '../../vf'
 import { Button } from '../ui/button'
+import { Switch } from '../ui/switch'
 import { ThemeToggle } from './theme'
 
 export const Navbar = () => {
@@ -17,6 +18,8 @@ export const Navbar = () => {
     toggleFavoritesOpen,
     hasFavorites,
     canChangeTheme,
+    userConfig,
+    setUserConfig,
   } = useShallowState((state) => ({
     settingsOpen: state.settingsOpen,
     toggleSettingsOpen: state.toggleSettingsOpen,
@@ -27,6 +30,8 @@ export const Navbar = () => {
     hasFavorites:
       state.userConfig.favorites &&
       Object.keys(state.userConfig.favorites).length > 0,
+    userConfig: state.userConfig,
+    setUserConfig: state.setUserConfig,
     canChangeTheme:
       state.preset === VOROFORCE_PRESET.minimal ||
       state.preset === VOROFORCE_PRESET.mobile,
@@ -37,6 +42,21 @@ export const Navbar = () => {
 
   return (
     <div className='pointer-events-none fixed inset-x-0 bottom-0 z-10 flex w-full flex-row items-center justify-between gap-1 p-3 md:top-0 md:bottom-auto md:z-60 md:justify-end md:px-9 md:py-9'>
+      <div className='pointer-events-auto flex items-center gap-2 rounded-full border border-foreground/20 bg-background/70 px-3 py-1.5 backdrop-blur-lg'>
+        <span className='text-[0.7rem] font-medium uppercase tracking-[0.12em] text-foreground/75'>
+          Plex
+        </span>
+        <Switch
+          checked={Boolean(userConfig.libraryOnly)}
+          aria-label='Toggle Plex library-only view'
+          onCheckedChange={(checked) => {
+            setUserConfig({
+              ...userConfig,
+              libraryOnly: checked,
+            })
+          }}
+        />
+      </div>
       <Button
         variant='ghost'
         size='icon'

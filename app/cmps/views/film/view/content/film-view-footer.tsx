@@ -1,6 +1,11 @@
-import { HeartOff, HeartPlus, Plus } from 'lucide-react'
+import { ExternalLink, HeartOff, HeartPlus, Plus } from 'lucide-react'
 import type { DialogProps } from 'vaul'
 import { useShallowState } from '../../../../../store'
+import {
+  getMediaAvailabilityForFilm,
+  getOverseerrUrlForFilm,
+  getPlexUrlForFilm,
+} from '../../../../../integrations/media-availability'
 import { cn } from '../../../../../utils/tw'
 import type { Film, VoroforceCell } from '../../../../../vf'
 import { CustomLinks } from '../../../../common/custom-links'
@@ -26,15 +31,27 @@ export const FilmViewFooter = ({
   handleClose?: () => void
   direction: DialogProps['direction']
 }) => {
-  const { userConfig, setUserConfig, isFavorite, setAddCustomLinkTypeOpen } =
+  const {
+    userConfig,
+    setUserConfig,
+    isFavorite,
+    setAddCustomLinkTypeOpen,
+    availabilityIndex,
+  } =
     useShallowState((state) => ({
       userConfig: state.userConfig,
       setUserConfig: state.setUserConfig,
       isFavorite: film && state.userConfig?.favorites?.[film.tmdbId],
       setAddCustomLinkTypeOpen: state.setAddCustomLinkTypeOpen,
+      availabilityIndex: state.availabilityIndex,
     }))
 
   if (!film) return
+
+  const availability = getMediaAvailabilityForFilm(film, availabilityIndex)
+  const plexUrl = getPlexUrlForFilm(film, availabilityIndex)
+  const overseerrUrl = getOverseerrUrlForFilm(film, availabilityIndex)
+
   return (
     <div
       className={cn(
@@ -43,7 +60,31 @@ export const FilmViewFooter = ({
         {},
       )}
     >
-      <div className={cn('pointer-events-auto flex flex-row gap-3')}>
+      <div className={cn('pointer-events-auto flex flex-row flex-wrap gap-3')}>
+        {availability?.inLibrary && plexUrl && (
+          <Button
+            asChild
+            variant='default'
+            className='rounded-lg md:backdrop-blur-lg'
+          >
+            <a href={plexUrl} target='_blank' rel='noreferrer noopener'>
+              Play in Plex
+              <ExternalLink />
+            </a>
+          </Button>
+        )}
+        {!availability?.inLibrary && overseerrUrl && (
+          <Button
+            asChild
+            variant={availability?.requested ? 'secondary' : 'default'}
+            className='rounded-lg md:backdrop-blur-lg'
+          >
+            <a href={overseerrUrl} target='_blank' rel='noreferrer noopener'>
+              {availability?.requested ? 'View Request' : 'Request in Overseerr'}
+              <ExternalLink />
+            </a>
+          </Button>
+        )}
         <StdLinks film={film} />
         <CustomLinks film={film} />
         <TooltipProvider delayDuration={0}>

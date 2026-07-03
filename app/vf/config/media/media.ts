@@ -1,3 +1,8 @@
+const parseEnvInt = (value: string | undefined, fallback: number) => {
+  const parsed = Number.parseInt(value ?? '', 10)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
 const mediaConfig = {
   enabled: true,
   baseUrl: import.meta.env.VITE_TEXTURES_BASE_URL ?? '/media',
@@ -9,7 +14,7 @@ const mediaConfig = {
       rows: 104,
       width: 2048,
       height: 624,
-      layers: Number.parseInt(import.meta.env.VITE_MEDIA_VERSION_0_LAYERS) ?? 1,
+      layers: parseEnvInt(import.meta.env.VITE_MEDIA_VERSION_0_LAYERS, 1),
       layerSrcFormat: '/low/{EXT}/{INDEX}.{EXT}',
       type: 'compressed-grid',
     },
@@ -18,8 +23,7 @@ const mediaConfig = {
       rows: 60,
       width: 1980,
       height: 1980,
-      layers:
-        Number.parseInt(import.meta.env.VITE_MEDIA_VERSION_1_LAYERS) ?? 10,
+      layers: parseEnvInt(import.meta.env.VITE_MEDIA_VERSION_1_LAYERS, 1),
       layerSrcFormat: '/mid/{EXT}/{INDEX}.{EXT}',
       type: 'compressed-grid',
     },
@@ -28,8 +32,7 @@ const mediaConfig = {
       rows: 12,
       width: 1980,
       height: 1980,
-      layers:
-        Number.parseInt(import.meta.env.VITE_MEDIA_VERSION_2_LAYERS) ?? 241,
+      layers: parseEnvInt(import.meta.env.VITE_MEDIA_VERSION_2_LAYERS, 1),
       layerSrcFormat: '/high/{EXT}/{INDEX}.{EXT}',
       type: 'compressed-grid',
     },

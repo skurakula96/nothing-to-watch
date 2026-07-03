@@ -4,6 +4,17 @@ export type FilmData = Record<string, string | number>
 export type FilmBatch = FilmData[]
 export type FilmBatches = Map<number, FilmBatch>
 
+const DEFAULT_FILM_INFO_BASE_URL = '/json'
+
+const getFilmBatchUrls = (batchIndex: number) => {
+  const configuredBaseUrl = import.meta.env.VITE_FILM_INFO_BASE_URL
+  return [...new Set([DEFAULT_FILM_INFO_BASE_URL, configuredBaseUrl].filter(Boolean))]
+    .map((baseUrl) => `${baseUrl}/${batchIndex}.json`)
+}
+
+const isJsonResponse = (response: Response) =>
+  (response.headers.get('content-type') ?? '').includes('application/json')
+
 export class Film {
   tmdbId: number
   imdbId?: string
@@ -33,17 +44,20 @@ export class Film {
 }
 
 const loadCellFilmBatch = async (batchIndex: number) => {
-  const url = `${import.meta.env.VITE_FILM_INFO_BASE_URL}/${batchIndex}.json`
-  try {
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`)
+  for (const url of getFilmBatchUrls(batchIndex)) {
+    try {
+      const response = await fetch(url)
+      if (!response.ok || !isJsonResponse(response)) {
+        continue
+      }
+
+      return (await response.json()) as FilmBatch
+    } catch (error) {
+      console.error('Error loading JSON:', error)
     }
-    return await response.json()
-  } catch (error) {
-    console.log('batchIndex', batchIndex)
-    console.error('Error loading JSON:', error)
   }
+
+  console.log('batchIndex', batchIndex)
 }
 
 export const getCellFilm = async (

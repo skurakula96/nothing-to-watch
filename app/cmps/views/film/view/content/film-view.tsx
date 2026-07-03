@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import config from '../../../../../config'
 import { useMediaQuery } from '../../../../../hooks/use-media-query'
-import { store } from '../../../../../store'
+import { getMediaAvailabilityForFilm } from '../../../../../integrations/media-availability'
+import { useShallowState } from '../../../../../store'
 import { down, orientation } from '../../../../../utils/mq'
 import { cn } from '../../../../../utils/tw'
 import type { Film } from '../../../../../vf'
@@ -18,7 +19,10 @@ export const FilmView = ({
   const [viewHovered, setViewHovered] = useState(false)
 
   const filmRef = useRef<Film>(undefined)
-  const ua = store((state) => state.ua)
+  const { ua, availabilityIndex } = useShallowState((state) => ({
+    ua: state.ua,
+    availabilityIndex: state.availabilityIndex,
+  }))
 
   const [backdropHidden, setBackdropHidden] = useState(true)
   const [backdropErrored, setBackdropErrored] = useState(true)
@@ -31,6 +35,10 @@ export const FilmView = ({
   }, [film])
 
   const isIOS = useMemo(() => ua.getOS()?.name === 'iOS', [ua])
+  const availability = useMemo(
+    () => getMediaAvailabilityForFilm(film, availabilityIndex),
+    [film, availabilityIndex],
+  )
 
   if (!film) return
 
@@ -119,6 +127,30 @@ export const FilmView = ({
                           {genre}
                         </Badge>
                       ))}
+                      {availability?.inLibrary && (
+                        <Badge
+                          variant='secondary'
+                          className='whitespace-nowrap text-[0.6rem] leading-none md:text-xs'
+                        >
+                          In Plex
+                        </Badge>
+                      )}
+                      {!availability?.inLibrary && availability && (
+                        <Badge
+                          variant='outline'
+                          className='whitespace-nowrap text-[0.6rem] leading-none md:text-xs'
+                        >
+                          Not in Library
+                        </Badge>
+                      )}
+                      {availability?.requested && (
+                        <Badge
+                          variant='secondary'
+                          className='whitespace-nowrap text-[0.6rem] leading-none md:text-xs'
+                        >
+                          Requested
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
