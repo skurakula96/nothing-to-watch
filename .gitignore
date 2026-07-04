@@ -26,6 +26,7 @@ dist-ssr
 _ref
 _ref/*
 public/tmp.webm
+public/media/single/
 
 # Test Coverage
 /coverage/
