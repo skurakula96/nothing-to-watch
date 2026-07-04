@@ -259,4 +259,6 @@ export class Loader extends CustomEventTarget {
       onLoad?.(mediaElement)
     }
   }
+
+  dispose() {}
 }

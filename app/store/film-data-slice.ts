@@ -27,6 +27,8 @@ export interface FilmDataSlice {
   setFilm: (film?: Film) => void
   filmBatches: Map<number, FilmData[]>
   setFilmBatches: (filmBatches: Map<number, FilmData[]>) => void
+  allCatalogBatches: Map<number, FilmData[]>
+  setAllCatalogBatches: (filmBatches: Map<number, FilmData[]>) => void
   libraryFilmBatches: Map<number, FilmData[]>
   setLibraryFilmBatches: (filmBatches: Map<number, FilmData[]>) => void
   fullCatalogMeta?: CatalogMeta
@@ -47,6 +49,12 @@ export interface FilmDataSlice {
   setAvailabilityIndex: (availabilityIndex: MediaAvailabilityIndex) => void
   setAvailabilityLoaded: (loaded: boolean) => void
   setAvailabilityError: (error?: string) => void
+  selectedGenres: string[]
+  setSelectedGenres: (selectedGenres: string[]) => void
+  genreFilteredCatalogIds: number[]
+  setGenreFilteredCatalogIds: (catalogIds: number[]) => void
+  genreFilterLoading: boolean
+  setGenreFilterLoading: (loading: boolean) => void
 }
 
 export const createFilmDataSlice: StateCreator<
@@ -58,6 +66,9 @@ export const createFilmDataSlice: StateCreator<
   setFilm: (film?: Film) => set({ film }),
   filmBatches: new Map<number, FilmBatch>(),
   setFilmBatches: (filmBatches: Map<number, FilmBatch>) => set({ filmBatches }),
+  allCatalogBatches: new Map<number, FilmBatch>(),
+  setAllCatalogBatches: (allCatalogBatches: Map<number, FilmBatch>) =>
+    set({ allCatalogBatches }),
   libraryFilmBatches: new Map<number, FilmBatch>(),
   setLibraryFilmBatches: (libraryFilmBatches: Map<number, FilmBatch>) =>
     set({ libraryFilmBatches }),
@@ -82,4 +93,11 @@ export const createFilmDataSlice: StateCreator<
   setAvailabilityLoaded: (availabilityLoaded: boolean) =>
     set({ availabilityLoaded }),
   setAvailabilityError: (availabilityError?: string) => set({ availabilityError }),
+  selectedGenres: [],
+  setSelectedGenres: (selectedGenres: string[]) => set({ selectedGenres }),
+  genreFilteredCatalogIds: [],
+  setGenreFilteredCatalogIds: (genreFilteredCatalogIds: number[]) =>
+    set({ genreFilteredCatalogIds }),
+  genreFilterLoading: false,
+  setGenreFilterLoading: (genreFilterLoading: boolean) => set({ genreFilterLoading }),
 })

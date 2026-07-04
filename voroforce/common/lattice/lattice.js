@@ -107,6 +107,7 @@ export function generateCenterOutwardSubgridsAndAssignCellIds(
   let currentCellId = 0
   let currentSubgrid = 0
   let currentSubgridIndex = 0
+  const catalogFilmIds = latticeConfig.catalogFilmIds
 
   // Function to add a subgrid
   const addSubgrid = (gridRow, gridCol) => {
@@ -127,9 +128,10 @@ export function generateCenterOutwardSubgridsAndAssignCellIds(
           if (cell) {
             result.push([row, col])
 
-            currentSubgrid = Math.floor(currentCellId / SUBGRID_SIZE)
-            currentSubgridIndex = Math.floor(currentCellId % SUBGRID_SIZE)
-            cell.id = currentCellId
+            const mappedCellId = catalogFilmIds?.[currentCellId] ?? currentCellId
+            currentSubgrid = Math.floor(mappedCellId / SUBGRID_SIZE)
+            currentSubgridIndex = Math.floor(mappedCellId % SUBGRID_SIZE)
+            cell.id = mappedCellId
             cell.subgrid = currentSubgrid // for json and media v2 layers
             cell.subgridIndex = currentSubgridIndex
 
@@ -359,6 +361,8 @@ export const handleLattice = (globalConfig, cells, width, height) => {
         totalCapacity: 9999999,
       },
     )
+
+  config.catalogFilmIds = globalConfig.catalogFilmIds
 
   const prevRows = config.rows
   const prevCols = config.cols

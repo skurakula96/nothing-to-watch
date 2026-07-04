@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { applyGenreFilters } from '../../integrations/genre-filter'
 import { loadCatalogMeta } from '../../integrations/catalog-meta'
 import { loadMediaAvailabilityIndex } from '../../integrations/media-availability'
 import { store } from '../../store'
@@ -29,6 +30,10 @@ export const CatalogBootstrap = () => {
         setFullCatalogMeta(catalogMeta)
         setCatalogMeta(catalogMeta)
         setAvailabilityIndex(availabilityIndex)
+        const selectedGenres = store.getState().userConfig.selectedGenres ?? []
+        if (selectedGenres.length > 0) {
+          await applyGenreFilters(selectedGenres)
+        }
       } catch (error) {
         if (!active) return
         setCatalogMetaError(

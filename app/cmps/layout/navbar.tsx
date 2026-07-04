@@ -7,6 +7,7 @@ import { cn } from '../../utils/tw'
 import { VOROFORCE_PRESET } from '../../vf'
 import { Button } from '../ui/button'
 import { Switch } from '../ui/switch'
+import { GenreFilterMenu } from './genre-filter-menu'
 import { ThemeToggle } from './theme'
 
 export const Navbar = () => {
@@ -58,6 +59,7 @@ export const Navbar = () => {
           }}
         />
       </div>
+      <GenreFilterMenu />
       <Button
         variant='ghost'
         size='icon'

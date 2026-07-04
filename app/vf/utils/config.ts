@@ -25,6 +25,7 @@ export type UserConfig = {
   cells?: number
   devTools?: boolean
   libraryOnly?: boolean
+  selectedGenres?: string[]
   customLinks?: CustomLink[]
   favorites?: {
     [key: Film['tmdbId']]: {
@@ -143,6 +144,7 @@ export const getVoroforceConfig = (state: StoreState) => {
     catalogMeta,
     filmBatches,
     catalogMode,
+    genreFilteredCatalogIds,
   } = state
   const urlParams = new URLSearchParams(window.location.search)
   const presetOverrideParam = urlParams.get('preset') as VOROFORCE_PRESET
@@ -164,7 +166,15 @@ export const getVoroforceConfig = (state: StoreState) => {
     config = mergeConfigs(config, config.modes?.[mode])
   }
 
-  config = configureCatalogMediaMode(config, catalogMeta)
+  const effectiveCatalogMeta =
+    catalogMode !== 'library' && genreFilteredCatalogIds.length > 0 && catalogMeta
+      ? {
+          ...catalogMeta,
+          count: genreFilteredCatalogIds.length,
+        }
+      : catalogMeta
+
+  config = configureCatalogMediaMode(config, effectiveCatalogMeta)
 
   if (catalogMode === 'library' && filmBatches.size > 0) {
     const batchSize = catalogMeta?.batchSize ?? 216
@@ -211,6 +221,7 @@ export const getVoroforceConfig = (state: StoreState) => {
     config.media.versions = config.media.versions.filter(
       (version: any) => version.type !== 'uncompressed-single',
     )
+    config.catalogFilmIds = genreFilteredCatalogIds
   }
 
   if (customLinkBase64Param) {
@@ -219,10 +230,10 @@ export const getVoroforceConfig = (state: StoreState) => {
 
   config.cells = cellsOverrideParam
     ? Number.parseInt(cellsOverrideParam)
-    : (cellLimit ?? catalogMeta?.count ?? config.cells)
+    : (cellLimit ?? effectiveCatalogMeta?.count ?? config.cells)
 
-  if (catalogMeta?.count) {
-    config.cells = Math.min(config.cells, catalogMeta.count)
+  if (effectiveCatalogMeta?.count) {
+    config.cells = Math.min(config.cells, effectiveCatalogMeta.count)
   }
 
   const maxCellsForConfiguredMedia = getMaxCellsForConfiguredMedia(config)

@@ -81,8 +81,16 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   setFilm: () => {},
   filmBatches: new Map(),
   setFilmBatches: () => {},
+  allCatalogBatches: new Map(),
+  setAllCatalogBatches: () => {},
   libraryFilmBatches: new Map(),
   setLibraryFilmBatches: () => {},
+  selectedGenres: [],
+  setSelectedGenres: () => {},
+  genreFilteredCatalogIds: [],
+  setGenreFilteredCatalogIds: () => {},
+  genreFilterLoading: false,
+  setGenreFilterLoading: () => {},
 
   // Apply overrides
   ...overrides,
