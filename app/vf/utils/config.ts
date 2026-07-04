@@ -207,6 +207,12 @@ export const getVoroforceConfig = (state: StoreState) => {
     })
   }
 
+  if (catalogMode !== 'library') {
+    config.media.versions = config.media.versions.filter(
+      (version: any) => version.type !== 'uncompressed-single',
+    )
+  }
+
   if (customLinkBase64Param) {
     handleCustomLinkParam(customLinkBase64Param, state)
   }
