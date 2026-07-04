@@ -160,6 +160,23 @@ export const FilmPreview = ({ poster = false }) => {
         y: origin.y - (reversedYRef.current ? 0 : dimensions.height),
       }
 
+      const previewWidth = innerRef.current.offsetWidth * scaleMod.current
+      const previewHeight = innerRef.current.offsetHeight * scaleMod.current
+      const viewportPadding = isSmallScreen ? 12 : 24
+      const minX = viewportPadding
+      const minY = viewportPadding
+      const maxX = Math.max(
+        minX,
+        window.innerWidth - previewWidth - viewportPadding,
+      )
+      const maxY = Math.max(
+        minY,
+        window.innerHeight - previewHeight - viewportPadding,
+      )
+
+      targetPosition.x = clamp(minX, maxX, targetPosition.x)
+      targetPosition.y = clamp(minY, maxY, targetPosition.y)
+
       if (!positionRef.current) {
         positionRef.current = {
           x: targetPosition.x,
