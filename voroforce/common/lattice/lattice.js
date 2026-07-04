@@ -129,11 +129,9 @@ export function generateCenterOutwardSubgridsAndAssignCellIds(
 
             currentSubgrid = Math.floor(currentCellId / SUBGRID_SIZE)
             currentSubgridIndex = Math.floor(currentCellId % SUBGRID_SIZE)
-            if (!cell.id) {
-              cell.id = currentCellId
-              cell.subgrid = currentSubgrid // for json and media v2 layers
-              cell.subgridIndex = currentSubgridIndex
-            }
+            cell.id = currentCellId
+            cell.subgrid = currentSubgrid // for json and media v2 layers
+            cell.subgridIndex = currentSubgridIndex
 
             if (cell.subgrid < autoTargetMediaVersion2SubgridCount) {
               cell.targetMediaVersion = 2
@@ -333,6 +331,10 @@ export const handleLattice = (globalConfig, cells, width, height) => {
     .filter(({ type }) => !type || type === 'compressed-grid')
     .reduce(
       (prev, mediaVersion = {}) => {
+        if (!mediaVersion.layers || mediaVersion.layers < 1) {
+          return prev
+        }
+
         const layerCapacity = mediaVersion.cols * mediaVersion.rows
         const totalCapacity = Math.min(
           prev.totalCapacity,

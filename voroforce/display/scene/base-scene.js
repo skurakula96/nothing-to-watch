@@ -302,21 +302,20 @@ export default class BaseScene {
   }
 
   initMedia() {
+    const compressedMediaVersions = this.getCompressedMediaVersions()
+    const uncompressedMediaVersions = this.getUnCompressedMediaVersions()
+
     if (!this.globalConfig.media?.enabled) {
       const emptyTex = new Texture(this.gl, {})
-      this.compressedMediaGridTextures = this.getCompressedMediaVersions().map(
-        () => emptyTex,
-      )
-      this.virtualMediaGridTextures = this.globalConfig.media.versions
-        .filter(({ type }) => type && type !== 'compressed-grid')
-        .map(() => emptyTex)
+      this.compressedMediaGridTextures = compressedMediaVersions.map(() => emptyTex)
+      this.virtualMediaGridTextures = uncompressedMediaVersions.map(() => emptyTex)
 
       return
     }
 
-    this.compressedMediaGridTextures = this.getCompressedMediaVersions().map(
+    this.compressedMediaGridTextures = compressedMediaVersions.map(
       (mediaVersion) => {
-        if (!mediaVersion) return new Texture(this.gl, {})
+        if (!mediaVersion || !mediaVersion.layers) return new Texture(this.gl, {})
         const { width, height, layers } = mediaVersion
         return new CompressedMediaGridArrayTexture(this.gl, {
           width,
@@ -327,8 +326,9 @@ export default class BaseScene {
       },
     )
 
-    this.virtualMediaGridTextures = this.getUnCompressedMediaVersions().map(
+    this.virtualMediaGridTextures = uncompressedMediaVersions.map(
       (mediaVersion) => {
+        if (!mediaVersion || !mediaVersion.layers) return new Texture(this.gl, {})
         const { width, height, layers } = mediaVersion
         return new VirtualMediaGridArrayTexture(this.gl, {
           width,
@@ -359,7 +359,15 @@ export default class BaseScene {
         this.loader.preloadAllMediaLayersVersion0()
         break
       case 'first':
-        this.loader.preloadFirstMediaLayerAllGridVersions()
+        if (
+          compressedMediaVersions?.[0]?.layers === 0 &&
+          compressedMediaVersions?.[1]?.layers === 0 &&
+          compressedMediaVersions?.[2]?.layers > 0
+        ) {
+          this.loader.preloadAllMediaLayersForVersion(2)
+        } else {
+          this.loader.preloadFirstMediaLayerAllGridVersions()
+        }
         break
     }
   }

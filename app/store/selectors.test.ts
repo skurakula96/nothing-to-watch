@@ -62,9 +62,15 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   setPerformanceMonitor: () => {},
 
   // FilmData Slice defaults
+  fullCatalogMeta: undefined,
+  setFullCatalogMeta: () => {},
   catalogMeta: undefined,
+  libraryCatalogMeta: undefined,
+  setLibraryCatalogMeta: () => {},
+  catalogMode: 'all',
   catalogMetaLoaded: false,
   setCatalogMeta: () => {},
+  setCatalogMode: () => {},
   setCatalogMetaLoaded: () => {},
   setCatalogMetaError: () => {},
   availabilityIndex: {},
@@ -74,6 +80,9 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   setAvailabilityError: () => {},
   setFilm: () => {},
   filmBatches: new Map(),
+  setFilmBatches: () => {},
+  libraryFilmBatches: new Map(),
+  setLibraryFilmBatches: () => {},
 
   // Apply overrides
   ...overrides,

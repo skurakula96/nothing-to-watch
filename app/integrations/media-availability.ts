@@ -103,3 +103,12 @@ export const isFilmInLibrary = (
   film: Pick<Film, 'tmdbId'> | undefined,
   availabilityIndex: MediaAvailabilityIndex,
 ) => Boolean(getMediaAvailabilityForFilm(film, availabilityIndex)?.inLibrary)
+
+export const getInLibraryTmdbIds = (
+  availabilityIndex: MediaAvailabilityIndex,
+) =>
+  new Set(
+    Object.values(availabilityIndex)
+      .filter((entry) => entry.inLibrary)
+      .map((entry) => entry.tmdbId),
+  )

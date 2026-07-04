@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-03T19:07:58.652Z",
+  "count": 9998,
+  "mediaVersions": [
+    {
+      "name": "high",
+      "cols": 18,
+      "rows": 12,
+      "tileWidth": 110,
+      "tileHeight": 165,
+      "width": 1980,
+      "height": 1980,
+      "layerCapacity": 216,
+      "layerCount": 47
+    }
+  ],
+  "single": {
+    "name": "single",
+    "width": 220,
+    "height": 330
+  }
+}

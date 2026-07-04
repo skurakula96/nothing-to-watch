@@ -1,5 +1,6 @@
 import { GithubIcon, Heart, Info, Settings } from 'lucide-react'
 
+import { setCatalogMode } from '@/integrations/catalog-mode'
 import { useShallowState } from '@/store'
 import config from '../../config'
 import { cn } from '../../utils/tw'
@@ -19,7 +20,8 @@ export const Navbar = () => {
     hasFavorites,
     canChangeTheme,
     userConfig,
-    setUserConfig,
+    availabilityLoaded,
+    catalogMetaLoaded,
   } = useShallowState((state) => ({
     settingsOpen: state.settingsOpen,
     toggleSettingsOpen: state.toggleSettingsOpen,
@@ -31,7 +33,8 @@ export const Navbar = () => {
       state.userConfig.favorites &&
       Object.keys(state.userConfig.favorites).length > 0,
     userConfig: state.userConfig,
-    setUserConfig: state.setUserConfig,
+    availabilityLoaded: state.availabilityLoaded,
+    catalogMetaLoaded: state.catalogMetaLoaded,
     canChangeTheme:
       state.preset === VOROFORCE_PRESET.minimal ||
       state.preset === VOROFORCE_PRESET.mobile,
@@ -49,11 +52,9 @@ export const Navbar = () => {
         <Switch
           checked={Boolean(userConfig.libraryOnly)}
           aria-label='Toggle Plex library-only view'
+          disabled={!availabilityLoaded || !catalogMetaLoaded}
           onCheckedChange={(checked) => {
-            setUserConfig({
-              ...userConfig,
-              libraryOnly: checked,
-            })
+            void setCatalogMode(checked)
           }}
         />
       </div>

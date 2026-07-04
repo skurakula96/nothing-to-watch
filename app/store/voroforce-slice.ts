@@ -21,9 +21,9 @@ export interface VoroforceSlice {
   container?: HTMLElement
   setContainer: (container: HTMLElement) => void
   voroforce?: VoroforceInstance
-  setVoroforce: (instance: VoroforceInstance) => void
+  setVoroforce: (instance?: VoroforceInstance) => void
   config?: VoroforceInstance['config']
-  setConfig: (instance: VoroforceInstance['config']) => void
+  setConfig: (instance?: VoroforceInstance['config']) => void
   voroforceMediaPreloaded: boolean
   setVoroforceMediaPreloaded: (preloaded: boolean) => void
   mode: VOROFORCE_MODE
@@ -66,8 +66,8 @@ export const createEngineSlice: StateCreator<
   return {
     ua: new UAParser(),
     setContainer: (container: HTMLElement) => set({ container }),
-    setVoroforce: (instance: VoroforceInstance) => set({ voroforce: instance }),
-    setConfig: (config: VoroforceInstance['config']) => set({ config }),
+    setVoroforce: (instance?: VoroforceInstance) => set({ voroforce: instance }),
+    setConfig: (config?: VoroforceInstance['config']) => set({ config }),
     voroforceMediaPreloaded: false,
     setVoroforceMediaPreloaded: (voroforceMediaPreloaded: boolean) => {
       set({ voroforceMediaPreloaded })

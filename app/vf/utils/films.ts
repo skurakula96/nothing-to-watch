@@ -5,6 +5,7 @@ export type FilmBatch = FilmData[]
 export type FilmBatches = Map<number, FilmBatch>
 
 const DEFAULT_FILM_INFO_BASE_URL = '/json'
+const DEFAULT_FILM_BATCH_SIZE = 216
 
 const getFilmBatchUrls = (batchIndex: number) => {
   const configuredBaseUrl = import.meta.env.VITE_FILM_INFO_BASE_URL
@@ -43,6 +44,21 @@ export class Film {
   }
 }
 
+const getCellBatchCoordinates = (cell: VoroforceCell) => {
+  if (Number.isFinite(cell?.id)) {
+    const id = Number(cell.id)
+    return {
+      batchIndex: Math.floor(id / DEFAULT_FILM_BATCH_SIZE),
+      batchOffset: id % DEFAULT_FILM_BATCH_SIZE,
+    }
+  }
+
+  return {
+    batchIndex: Number(cell?.subgrid),
+    batchOffset: Number(cell?.subgridIndex),
+  }
+}
+
 const loadCellFilmBatch = async (batchIndex: number) => {
   for (const url of getFilmBatchUrls(batchIndex)) {
     try {
@@ -65,13 +81,16 @@ export const getCellFilm = async (
   filmBatches: FilmBatches,
 ) => {
   if (!cell) return
-  let filmBatch = filmBatches.get(cell.subgrid)
+  const { batchIndex, batchOffset } = getCellBatchCoordinates(cell)
+  if (!Number.isFinite(batchIndex) || !Number.isFinite(batchOffset)) return
+
+  let filmBatch = filmBatches.get(batchIndex)
   if (!filmBatch) {
-    filmBatch = await loadCellFilmBatch(cell.subgrid)
-    filmBatches.set(cell.subgrid, filmBatch ?? [])
+    filmBatch = await loadCellFilmBatch(batchIndex)
+    filmBatches.set(batchIndex, filmBatch ?? [])
   }
 
-  return filmBatch?.[cell.subgridIndex]
-    ? new Film(filmBatch[cell.subgridIndex])
+  return filmBatch?.[batchOffset]
+    ? new Film(filmBatch[batchOffset])
     : undefined
 }

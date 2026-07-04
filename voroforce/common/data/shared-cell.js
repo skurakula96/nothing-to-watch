@@ -49,6 +49,8 @@ export class SharedCell {
     this.weightIndex = this.index
     this.idIndex = this.index
 
+    this.id = isNumber(cellData.id) ? cellData.id : this.index
+
     this.initialVx = 0
     this.initialVy = 0
 

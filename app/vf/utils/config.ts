@@ -12,7 +12,7 @@ import {
 import presets from '../presets'
 import type { VoroforceCell, VoroforceInstance } from '../types'
 import type { ConfigUniform } from './uniforms'
-import type { Film, FilmData } from './films'
+import type { Film } from './films'
 
 export type CustomLink = {
   name: string
@@ -60,51 +60,6 @@ const handleCustomLinkParam = (
   } catch {}
 }
 
-const getCatalogPosterUrlFactory = (catalogMeta?: CatalogMeta) => {
-  if (!catalogMeta) return
-
-  const batchCache = new Map<number, Promise<FilmData[]>>()
-  const batchSize = catalogMeta.batchSize
-  const batchUrls = (batchIndex: number) =>
-    [...new Set(['/json', import.meta.env.VITE_FILM_INFO_BASE_URL].filter(Boolean))]
-      .map((baseUrl) => `${baseUrl}/${batchIndex}.json`)
-
-  return async (layerIndex: number) => {
-    const batchIndex = Math.floor(layerIndex / batchSize)
-    const subgridIndex = layerIndex % batchSize
-
-    if (!batchCache.has(batchIndex)) {
-      batchCache.set(
-        batchIndex,
-        (async () => {
-          for (const url of batchUrls(batchIndex)) {
-            const response = await fetch(url)
-            const isJson = (response.headers.get('content-type') ?? '').includes(
-              'application/json',
-            )
-            if (!response.ok || !isJson) {
-              continue
-            }
-
-            return (await response.json()) as FilmData[]
-          }
-          throw new Error(`Failed to load catalog batch ${batchIndex}`)
-        })(),
-      )
-    }
-
-    const batch = await batchCache.get(batchIndex)
-    const film = batch?.[subgridIndex]
-    const posterPath = film?.poster_path ? String(film.poster_path) : undefined
-
-    if (!posterPath) {
-      return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
-    }
-
-    return `${appConfig.posterBaseUrl}${posterPath}`
-  }
-}
-
 const getMaxCellsForConfiguredMedia = (
   config: ReturnType<typeof mergeConfigs>,
 ) => {
@@ -117,24 +72,34 @@ const getMaxCellsForConfiguredMedia = (
   return cols * rows * layers
 }
 
-const configureTmdbSinglePosterMode = (
+const configureCatalogMediaMode = (
   config: ReturnType<typeof mergeConfigs>,
   catalogMeta?: CatalogMeta,
 ) => {
   if (!catalogMeta?.count) return config
 
-  const posterUrlFactory = getCatalogPosterUrlFactory(catalogMeta)
-  if (!posterUrlFactory) return config
-
-  config.media.preload = false
   config.media.baseUrl = '/media'
+  config.media.preload = 'first'
+  const mediaVersionMetaByName = new Map(
+    (catalogMeta.mediaVersions ?? []).map((version) => [version.name, version]),
+  )
+
   config.media.versions = config.media.versions.map(
     (version: any, index: number) => {
-      if (index < 3) {
+      if (index === 0 || index === 1) {
         return {
           ...version,
-          layers: index === 2 ? catalogMeta.batchCount : 1,
-          layerSrcFormat: version.layerSrcFormat.replace('{INDEX}', '0'),
+          layers: 0,
+        }
+      }
+
+      if (index === 2) {
+        const versionMeta = mediaVersionMetaByName.get('high')
+        return {
+          ...version,
+          layers:
+            versionMeta?.layerCount ??
+            Math.max(1, Math.ceil(catalogMeta.count / (version.cols * version.rows))),
         }
       }
       if (index !== 3) return version
@@ -142,7 +107,7 @@ const configureTmdbSinglePosterMode = (
       return {
         ...version,
         layers: catalogMeta.count,
-        layerSrcFormat: posterUrlFactory,
+        layerSrcFormat: '/single/{INDEX}.jpg',
       }
     },
   )
@@ -155,10 +120,12 @@ const configureTmdbSinglePosterMode = (
     forceConfig.requestMediaVersions = {
       ...forceConfig.requestMediaVersions,
       enabled: true,
-      v3ColLevelAdjacencyThreshold: 9999,
-      v3RowLevelAdjacencyThreshold: 9999,
-      v2ColLevelAdjacencyThreshold: 0,
-      v2RowLevelAdjacencyThreshold: 0,
+      v3ColLevelAdjacencyThreshold:
+        mode === VOROFORCE_MODE.select ? 1 : 0,
+      v3RowLevelAdjacencyThreshold:
+        mode === VOROFORCE_MODE.select ? 1 : 0,
+      v2ColLevelAdjacencyThreshold: 9999,
+      v2RowLevelAdjacencyThreshold: 9999,
       v1ColLevelAdjacencyThreshold: 0,
       v1RowLevelAdjacencyThreshold: 0,
     }
@@ -168,8 +135,15 @@ const configureTmdbSinglePosterMode = (
 }
 
 export const getVoroforceConfig = (state: StoreState) => {
-  const { userConfig, preset: initialPreset, cellLimit, mode, catalogMeta } =
-    state
+  const {
+    userConfig,
+    preset: initialPreset,
+    cellLimit,
+    mode,
+    catalogMeta,
+    filmBatches,
+    catalogMode,
+  } = state
   const urlParams = new URLSearchParams(window.location.search)
   const presetOverrideParam = urlParams.get('preset') as VOROFORCE_PRESET
   const cellsOverrideParam = urlParams.get('cells')
@@ -190,7 +164,48 @@ export const getVoroforceConfig = (state: StoreState) => {
     config = mergeConfigs(config, config.modes?.[mode])
   }
 
-  config = configureTmdbSinglePosterMode(config, catalogMeta)
+  config = configureCatalogMediaMode(config, catalogMeta)
+
+  if (catalogMode === 'library' && filmBatches.size > 0) {
+    const batchSize = catalogMeta?.batchSize ?? 216
+    const libraryBatches = filmBatches
+    config.media.preload = false
+    config.media.versions = config.media.versions.map((version: any, index: number) => {
+      if (index !== 3) return version
+
+      return {
+        ...version,
+        layers: catalogMeta?.count ?? 0,
+        layerSrcFormat: async (layerIndex: number) => {
+          const batchIndex = Math.floor(layerIndex / batchSize)
+          const subgridIndex = layerIndex % batchSize
+          const film = libraryBatches.get(batchIndex)?.[subgridIndex]
+          const posterPath = film?.poster_path ? String(film.poster_path) : undefined
+
+          return posterPath
+            ? `${appConfig.posterBaseUrl}${posterPath}`
+            : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+        },
+      }
+    })
+
+    const forceStepModeConfigs = config.simulation.forceStepModeConfigs
+    ;[VOROFORCE_MODE.preview, VOROFORCE_MODE.select].forEach((mode) => {
+      const forceConfig = forceStepModeConfigs?.[mode]?.forces
+      if (!forceConfig || Array.isArray(forceConfig)) return
+
+      forceConfig.requestMediaVersions = {
+        ...forceConfig.requestMediaVersions,
+        enabled: true,
+        v3ColLevelAdjacencyThreshold: 9999,
+        v3RowLevelAdjacencyThreshold: 9999,
+        v2ColLevelAdjacencyThreshold: 0,
+        v2RowLevelAdjacencyThreshold: 0,
+        v1ColLevelAdjacencyThreshold: 0,
+        v1RowLevelAdjacencyThreshold: 0,
+      }
+    })
+  }
 
   if (customLinkBase64Param) {
     handleCustomLinkParam(customLinkBase64Param, state)
@@ -199,6 +214,10 @@ export const getVoroforceConfig = (state: StoreState) => {
   config.cells = cellsOverrideParam
     ? Number.parseInt(cellsOverrideParam)
     : (cellLimit ?? catalogMeta?.count ?? config.cells)
+
+  if (catalogMeta?.count) {
+    config.cells = Math.min(config.cells, catalogMeta.count)
+  }
 
   const maxCellsForConfiguredMedia = getMaxCellsForConfiguredMedia(config)
   if (maxCellsForConfiguredMedia) {

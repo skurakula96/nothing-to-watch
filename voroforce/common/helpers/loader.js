@@ -20,7 +20,16 @@ export class Loader extends CustomEventTarget {
   }
 
   preloadAllMediaLayersVersion0(onLoad) {
-    const count = this.config.versions[0].layers
+    this.preloadAllMediaLayersForVersion(0, onLoad)
+  }
+
+  preloadAllMediaLayersForVersion(versionIndex, onLoad) {
+    const count = this.config.versions[versionIndex]?.layers
+    if (!count) {
+      this.dispatchEvent(new LoaderEvent('preloaded'))
+      onLoad?.()
+      return
+    }
     let loaded = 0
     const onLoadLayer = () => {
       loaded++
@@ -30,14 +39,19 @@ export class Loader extends CustomEventTarget {
       }
     }
     for (let i = 0; i < count; i++) {
-      void this.loadMediaLayer(0, i, onLoadLayer)
+      void this.loadMediaLayer(versionIndex, i, onLoadLayer)
     }
   }
 
   preloadFirstMediaLayerAllGridVersions(onLoad) {
     const count = this.config.versions.filter(
-      ({ type }) => !type || type === 'compressed-grid',
+      ({ type, layers }) => (!type || type === 'compressed-grid') && layers > 0,
     ).length
+    if (!count) {
+      this.dispatchEvent(new LoaderEvent('preloaded'))
+      onLoad?.()
+      return
+    }
     let loaded = 0
     const onLoadLayer = () => {
       loaded++
@@ -46,9 +60,11 @@ export class Loader extends CustomEventTarget {
         onLoad?.()
       }
     }
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < this.config.versions.length; i++) {
       const type = this.config.versions[i].type
+      const layers = this.config.versions[i].layers
       if (type && type !== 'compressed-grid') continue
+      if (!layers || layers < 1) continue
       void this.loadMediaLayer(i, 0, onLoadLayer)
     }
   }

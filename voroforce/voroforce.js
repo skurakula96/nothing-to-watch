@@ -379,7 +379,8 @@ export class Voroforce extends CustomEventTarget {
     this.display.dispose()
     this.controls.dispose()
     this.dimensions.dispose()
-    this.ticker.dispose()
+    this.ticker.stop?.()
+    this.ticker.kill?.()
     this.loader.dispose()
     this.store.dispose()
   }

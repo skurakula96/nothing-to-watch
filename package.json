@@ -22,6 +22,7 @@
 		"test:e2e:ui": "bunx playwright test --ui",
 		"test:e2e:debug": "bunx playwright test --debug",
 		"catalog:tmdb": "node scripts/generate-tmdb-catalog.mjs",
+		"media:tmdb": "node scripts/generate-media-atlases.mjs",
 		"seo:sitemap": "bun scripts/generate-sitemap.js",
 		"seo:validate": "echo '🔍 SEO Validation:' && echo '📄 robots.txt:' && cat public/robots.txt && echo '\\n🗺️  sitemap.xml exists:' && ls -la public/sitemap.xml"
 	},
@@ -48,6 +49,7 @@
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-hook-form": "^7.61.1",
+		"sharp": "^0.35.3",
 		"slugify": "^1.6.6",
 		"tailwind-merge": "^3.3.1",
 		"tw-animate-css": "^1.3.6",

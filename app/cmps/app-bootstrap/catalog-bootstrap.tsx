@@ -9,6 +9,7 @@ export const CatalogBootstrap = () => {
 
     const load = async () => {
       const {
+        setFullCatalogMeta,
         setCatalogMeta,
         setCatalogMetaError,
         setCatalogMetaLoaded,
@@ -25,6 +26,7 @@ export const CatalogBootstrap = () => {
           loadMediaAvailabilityIndex(),
         ])
         if (!active) return
+        setFullCatalogMeta(catalogMeta)
         setCatalogMeta(catalogMeta)
         setAvailabilityIndex(availabilityIndex)
       } catch (error) {
